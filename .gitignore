@@ -1,0 +1,11 @@
+webapp/nodejs/
+webapp/python/
+webapp/perl/
+webapp/php/
+webapp/ruby/
+.*
+!.gitignore
+!.bashrc
+/pprof
+local/
+bin/
