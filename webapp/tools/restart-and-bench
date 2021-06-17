@@ -2,9 +2,16 @@
 
 set -e
 
+SCRIPT_DIR=$(dirname "$0")
+
+cd $SCRIPT_DIR
+
 # nginx のログを削除
 echo ":: CLEAR LOGS       ====>"
 sudo truncate -s 0 -c /var/log/nginx/access.log
+
+# rotate log
+./rotate_log.sh /var/log/mysql/slow.log
 
 # go build
 cd /home/isucon/webapp/golang
@@ -22,7 +29,7 @@ sleep 5
 # ベンチマークの実行
 echo
 echo ":: BENCHMARK        ====>"
-/home/isucon/.x /home/isucon/bin/benchmarker
+/home/isucon/.x /home/isucon/bin/benchmarker -parallelism 5
 
 # alp で解析
 echo

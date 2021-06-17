@@ -342,36 +342,23 @@ func createReservationHandler(w http.ResponseWriter, r *http.Request) {
 		scheduleID := r.PostFormValue("schedule_id")
 		userID := getCurrentUser(r).ID
 
-		found := 0
-		tx.QueryRowContext(ctx, "SELECT 1 FROM `schedules` WHERE `id` = ? LIMIT 1 FOR UPDATE", scheduleID).Scan(&found)
-		if found != 1 {
+		capacity := 0
+		if err := tx.QueryRowContext(ctx, "SELECT `capacity` FROM `schedules` WHERE `id` = ? LIMIT 1", scheduleID).Scan(&capacity); err != nil {
+			return sendErrorJSON(w, err, 500)
+		}
+		if capacity == 0 {
 			return sendErrorJSON(w, fmt.Errorf("schedule not found"), 403)
 		}
 
-		found = 0
-		tx.QueryRowContext(ctx, "SELECT 1 FROM `users` WHERE `id` = ? LIMIT 1", userID).Scan(&found)
-		if found != 1 {
-			return sendErrorJSON(w, fmt.Errorf("user not found"), 403)
-		}
-
-		found = 0
+		found := 0
 		tx.QueryRowContext(ctx, "SELECT 1 FROM `reservations` WHERE `schedule_id` = ? AND `user_id` = ? LIMIT 1", scheduleID, userID).Scan(&found)
 		if found == 1 {
 			return sendErrorJSON(w, fmt.Errorf("already taken"), 403)
 		}
 
-		capacity := 0
-		if err := tx.QueryRowContext(ctx, "SELECT `capacity` FROM `schedules` WHERE `id` = ? LIMIT 1", scheduleID).Scan(&capacity); err != nil {
-			return sendErrorJSON(w, err, 500)
-		}
-
-		rows, err := tx.QueryContext(ctx, "SELECT * FROM `reservations` WHERE `schedule_id` = ?", scheduleID)
-		if err != nil && err != sql.ErrNoRows {
-			return sendErrorJSON(w, err, 500)
-		}
 		reserved := 0
-		for rows.Next() {
-			reserved++
+		if err := tx.QueryRowContext(ctx, "SELECT COUNT(1) FROM `reservations` WHERE `schedule_id` = ?", scheduleID).Scan(&reserved); err != nil {
+			return sendErrorJSON(w, err, 500)
 		}
 
 		if reserved >= capacity {
