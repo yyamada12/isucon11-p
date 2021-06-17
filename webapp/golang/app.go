@@ -78,12 +78,14 @@ func requiredStaffLogin(w http.ResponseWriter, r *http.Request) bool {
 }
 
 func getReservations(r *http.Request, s *Schedule) error {
-	rows, err := db.QueryxContext(r.Context(), "SELECT * FROM `reservations` WHERE `schedule_id` = ?", s.ID)
+	rows, err := db.QueryxContext(r.Context(), "SELECT r.id as id, r.schedule_id as schedule_id, r.user_id as user_id, r.created_at as created_at, u.id as `user.id`, u.email as `user.email`, u.nickname as `user.nickname`, u.staff as `user.staff`, u.created_at as `user.created_at` FROM `reservations` as r LEFT JOIN users as u ON r.user_id = u.id WHERE `schedule_id` = ?", s.ID)
 	if err != nil {
 		return err
 	}
 
 	defer rows.Close()
+
+	crtUser := getCurrentUser(r)
 
 	reserved := 0
 	s.Reservations = []*Reservation{}
@@ -92,7 +94,9 @@ func getReservations(r *http.Request, s *Schedule) error {
 		if err := rows.StructScan(reservation); err != nil {
 			return err
 		}
-		reservation.User = getUser(r, reservation.UserID)
+		if crtUser != nil && !crtUser.Staff {
+			reservation.User.Email = ""
+		}
 
 		s.Reservations = append(s.Reservations, reservation)
 		reserved++
@@ -117,17 +121,6 @@ func getReservationsCount(r *http.Request, s *Schedule) error {
 	s.Reserved = reserved
 
 	return nil
-}
-
-func getUser(r *http.Request, id string) *User {
-	user := &User{}
-	if err := db.QueryRowxContext(r.Context(), "SELECT * FROM `users` WHERE `id` = ? LIMIT 1", id).StructScan(user); err != nil {
-		return nil
-	}
-	if getCurrentUser(r) != nil && !getCurrentUser(r).Staff {
-		user.Email = ""
-	}
-	return user
 }
 
 func parseForm(r *http.Request) error {
