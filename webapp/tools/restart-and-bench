@@ -6,6 +6,10 @@ set -e
 echo ":: CLEAR LOGS       ====>"
 sudo truncate -s 0 -c /var/log/nginx/access.log
 
+# go build
+cd /home/isucon/webapp/golang
+make
+
 # 各種サービスの再起動
 echo
 echo ":: RESTART SERVICES ====>"
