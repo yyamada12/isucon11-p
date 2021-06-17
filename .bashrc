@@ -137,3 +137,6 @@ alias pts='sudo pt-query-digest --limit 10 --report-format profile,query_report 
 alias pp='go tool pprof -png -output ~/pprof/pprof.png http://localhost:6060/debug/pprof/profile'
 alias pps='go tool pprof -png -output ~/pprof/pprof.png http://localhost:6060/debug/pprof/profile && slackcat -c cancer_acropolis -n pprof.png ~/pprof/pprof.png'
 stty stop undef
+
+alias deploy='~/webapp/tools/restart-and-bench'
+alias applog='sudo journalctl -f -u web-golung'

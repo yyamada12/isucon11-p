@@ -10,7 +10,7 @@ sudo truncate -s 0 -c /var/log/nginx/access.log
 echo
 echo ":: RESTART SERVICES ====>"
 sudo systemctl restart mysql
-sudo systemctl restart web-ruby
+sudo systemctl restart web-golang
 sudo systemctl restart nginx
 
 sleep 5
