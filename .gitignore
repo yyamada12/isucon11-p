@@ -9,3 +9,4 @@ webapp/ruby/
 /pprof
 local/
 bin/
+go/
