@@ -139,4 +139,4 @@ alias pps='go tool pprof -png -output ~/pprof/pprof.png http://localhost:6060/de
 stty stop undef
 
 alias deploy='~/webapp/tools/restart-and-bench'
-alias applog='sudo journalctl -f -u web-golung'
+alias applog='sudo journalctl -f -u web-golang'
